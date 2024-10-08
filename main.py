@@ -1,52 +1,40 @@
+import database
+import amazon_automation
 from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.action_chains import ActionChains
-import mysql.connector
-
-def mysql_connect(host_name, user_name, user_password):
-    db = None
-    try:
-        db = mysql.connector.connect(
-            host=host_name,
-            user=user_name,
-            password=user_password,
-        )
-        print('Conexão bem sucedida!')
-    except ConnectionError as Error:
-        print(f'Erro durante a conexão: {Error}')
-    return db
-
-def create_database(db, cursor, query):
-    cursor.execute(query)
-    db.commit()
-
-# CRUD
-def db_create(db, cursor, query):
-    pass
-
-def db_read(db, cursor, query):
-    pass
-
-def db_update(db, cursor, query):
-    pass
-
-def db_delete(db, cursor, query):
-    pass
+from selenium.webdriver.chrome.options import Options
 
 def main():
     host = ''
     user = ''
     pwd = ''
-    query_create_db = '''CREATE DATABASE IF NOT EXISTS Produtos'''
+    database_name = 'scraping_vendas'
+    query_create_db = f'''CREATE DATABASE IF NOT EXISTS {database_name};'''
+    query_create_table = '''CREATE TABLE IF NOT EXISTS produtos(
+        nome_produto VARCHAR(255) NOT NULL,
+        preco_produto DOUBLE NOT NULL,
+        vendedor_produto VARCHAR(255) NOT NULL,
+        reembolso_produto VARCHAR(255) NOT NULL,
+        link_produto VARCHAR(600) NOT NULL,
+        data_coleta DATE,
+        data_entrega_produto DATE,
+        data_entrega_rapida_produto DATE,
+        disponobilidade_produto BOOLEAN NOT NULL DEFAULT FALSE,
+        avaliacao_produto DOUBLE,
+        PRIMARY KEY(data_coleta),
+        UNIQUE(link_produto),
+        CHECK(preco_produto > 0)
+    );'''
+    query_use_db = f'USE {database_name}'
     
-    db = mysql_connect(host, user, pwd)
-    cursor = db.cursor()
-    create_database(db, cursor, query_create_db)
-    print(db)
+    # Conexão com banco de dados
+    DB = database.Database(host, user, pwd)
+    DB.CREATE(query_create_db)
+    DB.USE(query_use_db)
+    DB.CREATE(query_create_table)
     
-    cursor.close()
-    db.close()
+    # Encerramento da conexão
+    DB.close_cursor()
+    DB.close_connection()
 
 if __name__ == "__main__":
     main()
